@@ -4,25 +4,26 @@ from api.app import app
 from fastapi import Response, status, HTTPException
 from api.order.models import CreateOrderRequest, CreateOrderResponse, GetOrderResponse
 from typing import List
+from api.app import order_repository
 
-dummy_order = {
-        "id": "order123",
-        "created": datetime(2023, 7, 28, 16, 38)
-    }
 
 @app.get("/orders", response_model=List[GetOrderResponse])
 async def get_orders():
-    return [GetOrderResponse(id=dummy_order["id"], created=dummy_order["created"])]
+    orders = order_repository.get_orders()
+    return [GetOrderResponse(**order.dict()) for order in orders]
 
 @app.post("/orders", response_model=CreateOrderResponse)
-async def create_order(order: CreateOrderRequest, response: Response):
+async def create_order(request: CreateOrderRequest, response: Response):
+    new_order = order_repository.new_order(request)
     response.status_code = status.HTTP_201_CREATED
-    return CreateOrderResponse(id=dummy_order["id"], created=dummy_order["created"])
+    return CreateOrderResponse(**new_order.dict())
 
 @app.get("/orders/{order_id}", response_model=GetOrderResponse)
 async def get_order(order_id):
-    if order_id != "order123":
+    order = order_repository.get_order(order_id)
+
+    if order is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    return GetOrderResponse(id=dummy_order["id"], created=dummy_order["created"])
+    return GetOrderResponse(**order.dict())
 

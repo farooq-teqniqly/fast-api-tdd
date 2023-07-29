@@ -1,10 +1,17 @@
 from api.app import app
 from api.fixtures import test_client
 from fastapi import status
-from api.order.order_api import dummy_order
+from fastapi import status
 from api.order.models import CreateOrderRequest
 from fastapi.encoders import jsonable_encoder
 from pydantic import ValidationError
+from datetime import datetime
+
+dummy_order = {
+            "id": "order123",
+            "created": datetime(2023, 7, 28, 16, 38),
+            "status": "in_progress"
+}
 
 def test_get_returns_orders(test_client):
     response = test_client.get("/orders")
